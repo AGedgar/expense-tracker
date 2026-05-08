@@ -3,17 +3,43 @@ import { z } from "zod";
 import { EXPENSE_LIMITS } from "../constants";
 import { idSchema, isoDateSchema } from "./common.schema";
 
+const amountSchema = z
+  .union([z.number(), z.literal("")])
+  .refine((value) => value !== "", {
+    message: "Amount is required"
+  })
+  .pipe(
+    z
+      .number()
+      .min(
+        EXPENSE_LIMITS.amountMin,
+        `Amount must be at least ${EXPENSE_LIMITS.amountMin}`
+      )
+      .max(
+        EXPENSE_LIMITS.amountMax,
+        `Amount must be ${EXPENSE_LIMITS.amountMax} or less`
+      )
+  );
+
+const expenseCategoryIdSchema = z
+  .string()
+  .trim()
+  .min(1, "Select a category");
+
 export const createExpenseSchema = z.object({
-  amount: z
-    .number()
-    .min(EXPENSE_LIMITS.amountMin)
-    .max(EXPENSE_LIMITS.amountMax),
+  amount: amountSchema,
   description: z
     .string()
     .trim()
-    .min(EXPENSE_LIMITS.descriptionMinLength)
-    .max(EXPENSE_LIMITS.descriptionMaxLength),
-  categoryId: idSchema,
+    .min(
+      EXPENSE_LIMITS.descriptionMinLength,
+      "Description is required"
+    )
+    .max(
+      EXPENSE_LIMITS.descriptionMaxLength,
+      `Description must be ${EXPENSE_LIMITS.descriptionMaxLength} characters or fewer`
+    ),
+  categoryId: expenseCategoryIdSchema,
   date: isoDateSchema
 });
 

@@ -23,6 +23,10 @@ type ExpenseFormProps = {
   onCancel?: () => void;
 };
 
+type ExpenseFormValues = Omit<CreateExpenseInput, "amount"> & {
+  amount: number | "";
+};
+
 export const ExpenseForm = ({
   categories,
   expense,
@@ -36,12 +40,12 @@ export const ExpenseForm = ({
     handleSubmit,
     reset,
     formState: { errors }
-  } = useForm<CreateExpenseInput>({
+  } = useForm<ExpenseFormValues, unknown, CreateExpenseInput>({
     resolver: zodResolver(createExpenseSchema),
     defaultValues: {
-      amount: expense?.amount ?? 0,
+      amount: expense?.amount ?? "",
       description: expense?.description ?? "",
-      categoryId: expense?.categoryId ?? categories[0]?.categoryId ?? "",
+      categoryId: expense?.categoryId ?? "",
       date: expense?.date ?? new Date().toISOString().slice(0, 10)
     }
   });
@@ -51,9 +55,9 @@ export const ExpenseForm = ({
 
     if (!expense) {
       reset({
-        amount: 0,
+        amount: "",
         description: "",
-        categoryId: categories[0]?.categoryId ?? "",
+        categoryId: "",
         date: new Date().toISOString().slice(0, 10)
       });
     }
@@ -71,7 +75,11 @@ export const ExpenseForm = ({
               label="Amount"
               type="number"
               inputProps={{ min: 0.01, step: 0.01 }}
-              onChange={(event) => field.onChange(Number(event.target.value))}
+              onChange={(event) => {
+                const { value } = event.target;
+
+                field.onChange(value === "" ? "" : Number(value));
+              }}
               error={Boolean(errors.amount)}
               helperText={errors.amount?.message}
               fullWidth
@@ -119,6 +127,9 @@ export const ExpenseForm = ({
             helperText={errors.categoryId?.message}
             fullWidth
           >
+            <MenuItem value="" disabled>
+              Select a category
+            </MenuItem>
             {categories.map((category) => (
               <MenuItem key={category.categoryId} value={category.categoryId}>
                 {category.name}

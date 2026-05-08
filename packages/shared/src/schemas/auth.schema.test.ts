@@ -23,6 +23,12 @@ describe("auth schemas", () => {
     });
 
     expect(result.success).toBe(false);
+
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.password).toEqual([
+        "Password must be at least 8 characters"
+      ]);
+    }
   });
 
   it("accepts login credentials", () => {
