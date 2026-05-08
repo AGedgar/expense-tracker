@@ -354,3 +354,9 @@ pnpm run remove:api
 ```
 
 The deployment creates Lambda functions, API Gateway HTTP API routes, a DynamoDB table, and a GSI for email lookup.
+
+## Live Links
+
+- Live app: https://main.d3p59iih22wjhn.amplifyapp.com/
+- API base URL: https://nwgoih6ajd.execute-api.us-east-1.amazonaws.com
+- Repository: https://github.com/AGedgar/expense-tracker
