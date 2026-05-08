@@ -1,0 +1,30 @@
+{
+  "name": "@expense-tracker/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "serverless offline",
+    "package": "serverless package",
+    "deploy": "serverless deploy",
+    "remove": "serverless remove",
+    "test": "jest --passWithNoTests",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1043.0",
+    "@aws-sdk/lib-dynamodb": "^3.1043.0",
+    "@expense-tracker/shared": "workspace:*",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
+    "@types/jsonwebtoken": "^9.0.10",
+    "serverless": "^3.40.0",
+    "serverless-esbuild": "^1.57.1",
+    "serverless-offline": "^13.9.0"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "expense-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --parallel --filter @expense-tracker/api --filter @expense-tracker/web dev",
+    "dev:api": "pnpm --filter @expense-tracker/api dev",
+    "dev:web": "pnpm --filter @expense-tracker/web dev",
+    "package:api": "pnpm --filter @expense-tracker/api run package",
+    "deploy:api": "pnpm --filter @expense-tracker/api run deploy",
+    "remove:api": "pnpm --filter @expense-tracker/api run remove",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.1",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^25.6.0",
+    "eslint": "^9.25.1",
+    "globals": "^16.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.31.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

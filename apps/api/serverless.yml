@@ -1,0 +1,190 @@
+service: expense-tracker-api
+frameworkVersion: "3"
+useDotenv: true
+
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  architecture: arm64
+  region: ${env:AWS_REGION, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 128
+  timeout: 10
+  environment:
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+    DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME, self:custom.tableName}
+    JWT_SECRET: ${env:JWT_SECRET}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '1h'}
+  httpApi:
+    cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+          Resource:
+            - !GetAtt ExpenseTrackerTable.Arn
+            - !Sub "${ExpenseTrackerTable.Arn}/index/GSI1"
+
+custom:
+  tableName: expense-tracker-${self:provider.stage}
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: false
+    platform: node
+    target: node20
+    concurrency: 10
+
+package:
+  individually: true
+  patterns:
+    - "!node_modules/.cache/**"
+    - "!coverage/**"
+    - "!dist/**"
+    - "!src/**/*.test.ts"
+
+functions:
+  signup:
+    handler: src/lambda/auth.signup
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/signup
+
+  login:
+    handler: src/lambda/auth.login
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/login
+
+  me:
+    handler: src/lambda/auth.me
+    events:
+      - httpApi:
+          method: GET
+          path: /me
+
+  listCategories:
+    handler: src/lambda/categories.listCategories
+    events:
+      - httpApi:
+          method: GET
+          path: /categories
+
+  createCategory:
+    handler: src/lambda/categories.createCategory
+    events:
+      - httpApi:
+          method: POST
+          path: /categories
+
+  updateCategory:
+    handler: src/lambda/categories.updateCategory
+    events:
+      - httpApi:
+          method: PUT
+          path: /categories/{categoryId}
+
+  deleteCategory:
+    handler: src/lambda/categories.deleteCategory
+    events:
+      - httpApi:
+          method: DELETE
+          path: /categories/{categoryId}
+
+  listExpenses:
+    handler: src/lambda/expenses.listExpenses
+    events:
+      - httpApi:
+          method: GET
+          path: /expenses
+
+  getExpense:
+    handler: src/lambda/expenses.getExpense
+    events:
+      - httpApi:
+          method: GET
+          path: /expenses/{expenseId}
+
+  createExpense:
+    handler: src/lambda/expenses.createExpense
+    events:
+      - httpApi:
+          method: POST
+          path: /expenses
+
+  updateExpense:
+    handler: src/lambda/expenses.updateExpense
+    events:
+      - httpApi:
+          method: PUT
+          path: /expenses/{expenseId}
+
+  deleteExpense:
+    handler: src/lambda/expenses.deleteExpense
+    events:
+      - httpApi:
+          method: DELETE
+          path: /expenses/{expenseId}
+
+  monthlyReport:
+    handler: src/lambda/reports.getMonthlyReport
+    events:
+      - httpApi:
+          method: GET
+          path: /reports/monthly
+
+  categoryReport:
+    handler: src/lambda/reports.getCategoryReport
+    events:
+      - httpApi:
+          method: GET
+          path: /reports/categories
+
+resources:
+  Resources:
+    ExpenseTrackerTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        BillingMode: PROVISIONED
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: GSI1PK
+            AttributeType: S
+          - AttributeName: GSI1SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1
+            KeySchema:
+              - AttributeName: GSI1PK
+                KeyType: HASH
+              - AttributeName: GSI1SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
